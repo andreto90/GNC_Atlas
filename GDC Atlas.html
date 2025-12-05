@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Estratégico - Financiera Atlas S.A.</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+        h1, h2, h3, h4 { color: #0f172a; letter-spacing: -0.025em; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        section { scroll-margin-top: 20px; margin-bottom: 4rem; }
+        
+        /* UI Components */
+        .sidebar-link { transition: all 0.2s; border-left: 3px solid transparent; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: #1e293b; border-left-color: #3b82f6; color: #fff; }
+        
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        
+        /* Gantt Specifics - Robust CSS Grid */
+        .gantt-wrapper { border: 1px solid #e2e8f0; border-radius: 0.5rem; background: white; overflow: hidden; }
+        .gantt-header { display: grid; grid-template-columns: 300px repeat(18, 1fr); background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .gantt-header-cell { padding: 12px 8px; font-size: 0.75rem; font-weight: 700; color: #64748b; text-align: center; border-right: 1px solid #e2e8f0; }
+        .gantt-header-cell:first-child { text-align: left; padding-left: 1.5rem; }
+        
+        .gantt-row { display: grid; grid-template-columns: 300px repeat(18, 1fr); border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+        .gantt-row:hover { background-color: #f8fafc; }
+        .gantt-task { padding: 10px 1.5rem; font-size: 0.75rem; font-weight: 600; color: #334155; border-right: 1px solid #e2e8f0; display: flex; align-items: center; }
+        
+        .gantt-timeline-container { grid-column: 2 / -1; position: relative; display: grid; grid-template-columns: repeat(18, 1fr); }
+        .gantt-grid-line { border-right: 1px solid #f1f5f9; height: 100%; }
+        
+        /* Absolute positioning for bars based on percentages is smoother */
+        .gantt-bar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; align-items: center; }
+        .gantt-bar { height: 20px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: width 0.5s; position: absolute; }
+        
+        /* Chat Widget */
+        .chat-bubble-ai { background: #0f172a; color: white; border-radius: 12px 12px 12px 2px; }
+        .chat-bubble-user { background: #e2e8f0; color: #334155; border-radius: 12px 12px 2px 12px; }
+        
+        /* Findings styling */
+        .finding-detail { background-color: #fff; border-left: 4px solid #3b82f6; padding: 1rem; margin-bottom: 1rem; border-radius: 0 0.5rem 0.5rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-72 bg-slate-900 text-slate-400 flex-shrink-0 overflow-y-auto hidden lg:block z-50">
+        <div class="p-6 border-b border-slate-800 flex items-center gap-3 sticky top-0 bg-slate-900 z-10">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                <i class="fas fa-layer-group text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-white font-bold text-sm leading-tight">Financiera Atlas</h2>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Gobierno Corporativo</p>
+            </div>
+        </div>
+        
+        <nav class="p-4 space-y-1 text-xs font-medium">
+            <div class="px-4 py-2 text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-4">Estrategia</div>
+            <a href="#carta-presentacion" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-envelope-open-text w-4"></i> Carta de Presentación</a>
+            <a href="#resumen-ejecutivo" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-briefcase w-4"></i> 1. Resumen Ejecutivo</a>
+            <a href="#introduccion" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-globe-americas w-4"></i> 2. Contexto Financiero</a>
+            
+            <div class="px-4 py-2 text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-4">Diagnóstico Profundo</div>
+            <a href="#metodologia" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-search w-4"></i> 3. Metodología</a>
+            <a href="#diagnostico" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-thermometer-half w-4"></i> 4. Diagnóstico "As-Is"</a>
+            <a href="#procesos-actores" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-network-wired w-4"></i> 5. Cadena de Valor</a>
+            <a href="#matriz-gap" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-exclamation-triangle w-4"></i> 6. Brechas de Gobierno</a>
+            <a href="#hallazgos" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-clipboard-list w-4"></i> 7. Hallazgos Detallados</a>
+            <a href="#evaluacion-riesgos" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-shield-alt w-4"></i> 8. Impacto de Riesgos</a>
+            
+            <div class="px-4 py-2 text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-4">Arquitectura Futura</div>
+            <a href="#capacidad-respuesta" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-stopwatch w-4"></i> 9. Capacidad Operativa</a>
+            <a href="#modelo-futuro" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-cubes w-4"></i> 10. Modelo "To-Be"</a>
+            <a href="#linaje-datos" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-route w-4"></i> 11. Linaje de Datos</a>
+            <a href="#monitoreo-automatizado" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-desktop w-4"></i> 12. Dashboard Monitoreo</a>
+            
+            <div class="px-4 py-2 text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-4">Implementación</div>
+            <a href="#politica-gobierno" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-gavel w-4"></i> 13. Políticas</a>
+            <a href="#catalogo-kpi" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-chart-bar w-4"></i> 14. Catálogo y KPIs</a>
+            <a href="#raci-dq" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-users-cog w-4"></i> 15. RACI y Calidad</a>
+            <a href="#tecnologias-habilitadoras" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-server w-4"></i> 16. Stack Tecnológico</a>
+            <a href="#cultura-datos" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-brain w-4"></i> 17. Cultura Data-Driven</a>
+            <a href="#gemelos-digitales" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-clone w-4"></i> 18. Gemelos Digitales</a>
+            <a href="#interoperabilidad" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-exchange-alt w-4"></i> 19. Interoperabilidad</a>
+            <a href="#roadmap" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-road w-4"></i> 20. Hoja de Ruta</a>
+            <a href="#recomendaciones" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-check-square w-4"></i> 21. Recomendaciones</a>
+            <a href="#conclusiones" class="sidebar-link block px-4 py-2.5 rounded flex items-center gap-3"><i class="fas fa-flag-checkered w-4"></i> 22. Conclusiones</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
+        <!-- Top Bar -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm z-40">
+            <div class="flex items-center gap-4">
+                <button class="lg:hidden text-slate-500 hover:text-slate-700"><i class="fas fa-bars text-xl"></i></button>
+                <h1 class="text-lg font-bold text-slate-800 hidden sm:block">Diagnóstico de Gobierno de Datos Corporativo</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wide border border-emerald-200">
+                    <i class="fas fa-check-circle mr-1"></i> Informe Final
+                </span>
+                <button class="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="Descargar PDF"><i class="fas fa-file-pdf text-lg"></i></button>
+            </div>
+        </header>
+
+        <!-- Content Scroll Area -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-10 scroll-smooth">
+            <div class="max-w-6xl mx-auto space-y-12">
+
+                <!-- Carta de Presentación -->
+                <section id="carta-presentacion" class="card-hover bg-white p-10 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
+                    <div class="flex justify-between items-start mb-8">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-blue-600 text-white p-3 rounded font-bold text-xl shadow-md">JW</div>
+                            <span class="font-bold text-2xl text-slate-800 tracking-tight">Project House</span>
+                        </div>
+                        <div class="text-right border-l pl-4 border-slate-200">
+                            <p class="text-sm font-bold text-slate-800">Bogotá D.C., Mayo de 2025</p>
+                            <p class="text-xs text-slate-500">Ref: Propuesta Estratégica GD-2025-001</p>
+                        </div>
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-6 font-display">Diagnóstico Estratégico de Gobierno de Datos</h2>
+                    <div class="prose prose-slate max-w-none text-slate-600 text-base leading-relaxed text-justify space-y-4">
+                        <p>Respetados miembros de la Junta Directiva y Alta Gerencia de <strong>Financiera Atlas S.A.</strong>,</p>
+                        <p>En el contexto actual de transformación del sector financiero, donde la competencia se define por la agilidad digital, la inteligencia analítica y la capacidad de anticipación, los datos han dejado de ser un simple registro contable para convertirse en el activo estratégico fundamental que define la solvencia y competitividad de la institución.</p>
+                        <p>JW Project House tiene el honor de presentar este <strong>Informe de Diagnóstico Profundo y Modelo de Gobierno de Datos Corporativo</strong>. Este documento no es un reporte técnico convencional; es una hoja de ruta de negocio fundamentada en un análisis exhaustivo de ocho semanas sobre sus procesos de crédito, riesgo, operaciones y tecnología.</p>
+                        <p>Nuestro análisis revela que Financiera Atlas enfrenta un punto de inflexión crítico. A pesar de contar con un core bancario transaccional estable, la gestión de la información opera en silos funcionales desconectados. Esta fragmentación está limitando severamente la capacidad de la organización para generar valor agregado, optimizar la gestión del riesgo de crédito (SARC) y ofrecer una experiencia personalizada a sus clientes.</p>
+                        <p>Este informe detalla con precisión cómo la ausencia de un gobierno de datos formalizado está impactando directamente el P&L de la compañía, manifestándose en provisiones ineficientes, costos operativos ocultos por reprocesos manuales y una exposición latente a riesgos regulatorios y reputacionales. La arquitectura de solución propuesta busca mitigar estos riesgos y habilitar a Atlas para el futuro del Open Finance.</p>
+                    </div>
+                    <div class="mt-10 pt-6 border-t border-slate-100 flex items-center gap-4">
+                        <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-bold text-2xl shadow-inner"><i class="fas fa-signature"></i></div>
+                        <div>
+                            <p class="font-bold text-slate-900 text-lg">Dirección de Estrategia de Datos</p>
+                            <p class="text-sm text-blue-600 font-medium">TÓTAL Consulting & JW Project House</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 1. Resumen Ejecutivo -->
+                <section id="resumen-ejecutivo">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-briefcase text-lg"></i></div>
+                        Resumen Ejecutivo
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Main Insight -->
+                        <div class="lg:col-span-8 bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-700 mb-4 text-lg border-b pb-3">Estado de Madurez y Hallazgos Críticos</h4>
+                            <p class="text-base text-slate-600 mb-6 text-justify leading-relaxed">
+                                Tras la evaluación integral, se determina que Financiera Atlas se encuentra en un nivel de madurez de datos de <strong class="text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200">2.0 (Básico/Reactivo)</strong> en una escala de 5. Esto significa que la gestión de datos no está estandarizada, depende excesivamente del conocimiento tribal de empleados clave y carece de controles automatizados. Los procesos de reporte regulatorio y gestión de riesgo dependen de la intervención manual masiva en hojas de cálculo, lo que introduce un riesgo operativo significativo.
+                            </p>
+                            
+                            <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 mb-6">
+                                <h5 class="font-bold text-slate-800 text-sm uppercase mb-3 flex items-center gap-2"><i class="fas fa-chart-line text-blue-600"></i> Impacto Financiero Directo</h5>
+                                <p class="text-sm text-slate-600 leading-relaxed">
+                                    La falta de calidad en los datos de garantías (avalúos vencidos no actualizados en el sistema) y la inconsistencia en el cálculo de los días de mora real entre sistemas están generando un <strong>exceso de provisiones estimado del 4.5%</strong> anual. Esto representa capital de trabajo inmovilizado que podría estar generando rendimientos mediante la colocación de nuevos créditos.
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <i class="fas fa-money-bill-wave text-red-600 text-lg"></i>
+                                        <h5 class="font-bold text-red-900 text-base">Riesgo SARC</h5>
+                                    </div>
+                                    <p class="text-xs text-red-800 leading-snug">Incertidumbre en modelos de pérdida esperada (NIIF 9) por datos históricos de comportamiento de pago incompletos o sucios.</p>
+                                </div>
+                                <div class="p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg shadow-sm">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <i class="fas fa-cogs text-orange-600 text-lg"></i>
+                                        <h5 class="font-bold text-orange-900 text-base">Ineficiencia</h5>
+                                    </div>
+                                    <p class="text-xs text-orange-800 leading-snug">El 40% del tiempo de los analistas financieros senior se pierde en labores de "conserjería de datos" (limpieza manual) en lugar de análisis.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Gauge Chart Widget -->
+                        <div class="lg:col-span-4 bg-slate-900 p-8 rounded-xl shadow-lg text-white flex flex-col items-center justify-center relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-tachometer-alt text-9xl"></i></div>
+                            <div class="absolute bottom-0 left-0 p-4 opacity-10"><i class="fas fa-chart-pie text-8xl"></i></div>
+                            
+                            <h4 class="font-bold text-slate-200 mb-6 z-10 text-lg">Índice de Madurez</h4>
+                            <div class="w-56 h-56 relative z-10">
+                                <canvas id="gaugeMaturityChart"></canvas>
+                                <div class="absolute inset-0 flex items-center justify-center flex-col pt-10 pointer-events-none">
+                                    <span class="text-6xl font-extrabold text-white drop-shadow-md">2.0</span>
+                                    <span class="text-xs font-bold uppercase tracking-widest text-red-400 mt-2 bg-slate-800 px-2 py-1 rounded">Reactivo</span>
+                                </div>
+                            </div>
+                            <div class="w-full mt-6 z-10 px-4">
+                                <div class="flex justify-between text-xs text-slate-400 mb-2 font-medium">
+                                    <span>Promedio Sector</span>
+                                    <span>3.2</span>
+                                </div>
+                                <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-blue-500 h-2 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" style="width: 64%"></div>
+                                </div>
+                                <p class="text-center text-[10px] text-slate-500 mt-3 italic">Brecha competitiva significativa</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Contexto Financiero -->
+                <section id="introduccion">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-globe-americas text-lg"></i></div>
+                        Contexto Financiero y Regulatorio
+                    </h3>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-base text-slate-600 mb-8 leading-relaxed">El gobierno de datos es el habilitador transversal indispensable para cumplir con la estricta regulación prudencial de la SFC y para alcanzar los objetivos estratégicos de crecimiento de la Financiera. El incumplimiento en la calidad de los datos conlleva riesgos de sanciones, multas y daño reputacional.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Card 1 -->
+                            <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-blue-400 hover:shadow-md transition-all group relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+                                <div class="flex justify-between items-start mb-4 relative z-10">
+                                    <div class="p-3 bg-blue-50 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-balance-scale text-xl"></i></div>
+                                    <span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase border border-red-200">Crítico</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800 mb-2 text-lg">Riesgo de Crédito (SARC)</h4>
+                                <p class="text-xs text-slate-500 mb-4 font-medium uppercase tracking-wide">Circular Básica Contable</p>
+                                <p class="text-sm text-slate-600 mb-4 leading-snug">Exige precisión absoluta en la información para la evaluación y calificación de la cartera de créditos.</p>
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Datos Críticos:</p>
+                                    <ul class="text-xs text-slate-600 space-y-1.5">
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-500"></i> Calificación por altura de mora.</li>
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-500"></i> Valoración comercial de garantías.</li>
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-500"></i> Provisiones individuales.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Card 2 -->
+                            <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-indigo-400 hover:shadow-md transition-all group relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+                                <div class="flex justify-between items-start mb-4 relative z-10">
+                                    <div class="p-3 bg-indigo-50 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-user-shield text-xl"></i></div>
+                                    <span class="px-2 py-1 bg-orange-100 text-orange-700 text-[10px] font-bold rounded-full uppercase border border-orange-200">Alto</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800 mb-2 text-lg">SARLAFT 4.0</h4>
+                                <p class="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Prevención Lavado de Activos</p>
+                                <p class="text-sm text-slate-600 mb-4 leading-snug">Requiere una visión integral del cliente para detectar operaciones inusuales y gestionar listas de riesgo.</p>
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Datos Críticos:</p>
+                                    <ul class="text-xs text-slate-600 space-y-1.5">
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-indigo-500"></i> Conocimiento del Cliente (KYC).</li>
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-indigo-500"></i> Segmentación transaccional.</li>
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-indigo-500"></i> Beneficiarios finales.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Card 3 -->
+                            <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 hover:shadow-md transition-all group relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+                                <div class="flex justify-between items-start mb-4 relative z-10">
+                                    <div class="p-3 bg-emerald-50 rounded-lg text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-coins text-xl"></i></div>
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-full uppercase border border-yellow-200">Medio</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800 mb-2 text-lg">Liquidez (SARL)</h4>
+                                <p class="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Gestión de Tesorería</p>
+                                <p class="text-sm text-slate-600 mb-4 leading-snug">Fundamental para asegurar la disponibilidad de recursos y el cumplimiento de los encajes bancarios.</p>
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Datos Críticos:</p>
+                                    <ul class="text-xs text-slate-600 space-y-1.5">
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-500"></i> Flujos de caja contractuales.</li>
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-500"></i> Vencimientos CDTs.</li>
+                                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-500"></i> Brechas de liquidez (GAP).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Metodología -->
+                <section id="metodologia">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-search text-lg"></i></div>
+                        Metodología de Diagnóstico
+                    </h3>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-base text-slate-600 mb-10 text-center max-w-4xl mx-auto leading-relaxed">
+                            Para este diagnóstico, aplicamos el marco de referencia internacional <strong>DAMA-DMBOK2 (Data Management Body of Knowledge)</strong>, adaptado específicamente para el sector financiero colombiano. La evaluación cubrió tres dimensiones clave: <strong>Personas</strong> (Cultura y Roles), <strong>Procesos</strong> (Ciclo de Vida del Dato) y <strong>Tecnología</strong> (Arquitectura e Integración), asegurando una visión holística de la madurez de la entidad.
+                        </p>
+                        
+                        <div class="relative px-4">
+                            <!-- Connecting Line -->
+                            <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 z-0 rounded-full"></div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                                <!-- Step 1 -->
+                                <div class="bg-white p-6 rounded-xl border border-slate-200 text-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all cursor-default group">
+                                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-2xl border-4 border-white ring-2 ring-blue-100 shadow-md group-hover:bg-blue-600 group-hover:text-white transition-colors">1</div>
+                                    <h4 class="font-bold text-slate-800 mb-2 text-lg">Inmersión</h4>
+                                    <p class="text-sm text-slate-500 leading-snug">12 Entrevistas en profundidad con VP de Riesgo, Crédito, Tecnología y Operaciones para entender los dolores del negocio.</p>
+                                </div>
+                                <!-- Step 2 -->
+                                <div class="bg-white p-6 rounded-xl border border-slate-200 text-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all cursor-default group">
+                                    <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-2xl border-4 border-white ring-2 ring-indigo-100 shadow-md group-hover:bg-indigo-600 group-hover:text-white transition-colors">2</div>
+                                    <h4 class="font-bold text-slate-800 mb-2 text-lg">Evaluación Técnica</h4>
+                                    <p class="text-sm text-slate-500 leading-snug">Revisión técnica de bases de datos (Core, CRM), perfiles de calidad de datos y análisis de los procesos ETL actuales.</p>
+                                </div>
+                                <!-- Step 3 -->
+                                <div class="bg-white p-6 rounded-xl border border-slate-200 text-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all cursor-default group">
+                                    <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-2xl border-4 border-white ring-2 ring-purple-100 shadow-md group-hover:bg-purple-600 group-hover:text-white transition-colors">3</div>
+                                    <h4 class="font-bold text-slate-800 mb-2 text-lg">Diseño To-Be</h4>
+                                    <p class="text-sm text-slate-500 leading-snug">Definición de la arquitectura de datos moderna objetivo y el modelo de gobierno federado requerido.</p>
+                                </div>
+                                <!-- Step 4 -->
+                                <div class="bg-white p-6 rounded-xl border border-slate-200 text-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all cursor-default group">
+                                    <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-2xl border-4 border-white ring-2 ring-emerald-100 shadow-md group-hover:bg-emerald-600 group-hover:text-white transition-colors">4</div>
+                                    <h4 class="font-bold text-slate-800 mb-2 text-lg">Roadmap</h4>
+                                    <p class="text-sm text-slate-500 leading-snug">Construcción del plan de implementación detallado, priorizado por retorno de inversión (ROI) y mitigación de riesgo.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Diagnóstico As-Is (Detailed Heatmap) -->
+                <section id="diagnostico">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-thermometer-half text-lg"></i></div>
+                        Diagnóstico Detallado del Estado Actual ("As-Is")
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-6 pb-2 border-b text-lg">Evaluación de Capacidades de Datos</h4>
+                            
+                            <!-- Capability 1 -->
+                            <div class="detail-box mb-6 border-l-4 border-orange-500 bg-orange-50/50 p-4 rounded-r-lg">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h5 class="font-bold text-slate-800 text-base flex items-center gap-2"><i class="fas fa-chess-board text-orange-600"></i> Estrategia y Gobierno</h5>
+                                    <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full border border-orange-200">Nivel 2: Repetible</span>
+                                </div>
+                                <p class="text-sm text-slate-600 text-justify leading-relaxed">
+                                    No existe un comité de gobierno de datos formal ni un "Data Owner" asignado. Las decisiones sobre definiciones críticas de negocio (ej. qué se considera "Mora Real") se toman en silos departamentales, generando conflictos recurrentes entre las áreas de Riesgo y Comercial al momento de medir el desempeño.
+                                </p>
+                            </div>
+
+                            <!-- Capability 2 -->
+                            <div class="detail-box mb-6 border-l-4 border-red-500 bg-red-50/50 p-4 rounded-r-lg">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h5 class="font-bold text-slate-800 text-base flex items-center gap-2"><i class="fas fa-database text-red-600"></i> Arquitectura e Integración</h5>
+                                    <span class="bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full border border-red-200">Nivel 1: Inicial</span>
+                                </div>
+                                <p class="text-sm text-slate-600 text-justify leading-relaxed">
+                                    La arquitectura actual es tipo "Spaghetti", caracterizada por múltiples integraciones punto a punto frágiles y una dependencia excesiva de archivos planos y Excel para mover datos. No existe un repositorio centralizado (Data Warehouse) confiable, lo que obliga a la reconstrucción manual de la historia del cliente para cada análisis.
+                                </p>
+                            </div>
+
+                            <!-- Capability 3 -->
+                            <div class="detail-box border-l-4 border-orange-500 bg-orange-50/50 p-4 rounded-r-lg">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h5 class="font-bold text-slate-800 text-base flex items-center gap-2"><i class="fas fa-check-double text-orange-600"></i> Calidad de Datos</h5>
+                                    <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full border border-orange-200">Nivel 2: Reactivo</span>
+                                </div>
+                                <p class="text-sm text-slate-600 text-justify leading-relaxed">
+                                    La gestión de la calidad es puramente reactiva. La limpieza de datos se realiza "aguas abajo", justo antes de la generación de los reportes regulatorios, en lugar de prevenir el error en la fuente. No existen reglas de validación en los sistemas de origen (Front de Crédito), lo que resulta en altas tasas de error en datos básicos de contacto.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- DQ Dimensions Chart -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-700 mb-2">Dimensiones de Calidad</h4>
+                                <p class="text-xs text-slate-500 mb-6">Evaluación de las 6 dimensiones DMBOK.</p>
+                            </div>
+                            <div class="flex-1 flex items-center justify-center relative">
+                                <canvas id="dqDimensionsChart"></canvas>
+                            </div>
+                            <div class="mt-6 text-xs text-slate-500 text-center bg-slate-50 p-3 rounded border border-slate-100">
+                                <strong>Hallazgo Clave:</strong> La dimensión de "Consistencia" es la más crítica, presentando discrepancias severas de saldos entre los sistemas operativos y el contable.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. Procesos y Actores -->
+                <section id="procesos-actores">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-network-wired text-lg"></i></div>
+                        Cadena de Valor del Dato (Ciclo de Crédito)
+                    </h3>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                        <p class="text-sm text-slate-600 mb-8 max-w-4xl">El dato financiero atraviesa un ciclo complejo con múltiples puntos de contacto y dueños, lo que genera el efecto "teléfono roto" y degradación de la calidad. A continuación, el mapa de actores clave y sus puntos de dolor:</p>
+                        
+                        <div class="min-w-[900px]">
+                            <div class="flex items-center justify-between gap-6 relative">
+                                <!-- Flow Line -->
+                                <div class="absolute top-12 left-0 w-full h-1 bg-slate-100 -z-10 rounded-full"></div>
+                                
+                                <!-- Step 1 -->
+                                <div class="w-1/5 bg-white border border-blue-200 p-5 rounded-xl shadow-sm text-center relative group hover:border-blue-400 transition-all hover:shadow-md cursor-pointer h-48 flex flex-col items-center">
+                                    <div class="w-6 h-6 bg-blue-500 rounded-full absolute -top-3 left-1/2 -translate-x-1/2 border-4 border-white shadow-sm flex items-center justify-center text-[10px] text-white font-bold">1</div>
+                                    <i class="fas fa-store text-3xl text-blue-600 mb-3 group-hover:scale-110 transition-transform mt-2"></i>
+                                    <h4 class="font-bold text-sm text-slate-800">Comercial</h4>
+                                    <p class="text-[10px] text-slate-500 mt-2 leading-tight">Originación y captura de la solicitud de crédito en agencia o campo.</p>
+                                    <div class="mt-auto w-full pt-3 border-t border-dashed border-blue-100">
+                                        <span class="text-[9px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 font-semibold block">Error: Datos contacto</span>
+                                    </div>
+                                </div>
+                                <!-- Arrow -->
+                                <i class="fas fa-chevron-right text-slate-300 text-xl"></i>
+                                
+                                <!-- Step 2 -->
+                                <div class="w-1/5 bg-white border border-indigo-200 p-5 rounded-xl shadow-sm text-center relative group hover:border-indigo-400 transition-all hover:shadow-md cursor-pointer h-48 flex flex-col items-center">
+                                    <div class="w-6 h-6 bg-indigo-500 rounded-full absolute -top-3 left-1/2 -translate-x-1/2 border-4 border-white shadow-sm flex items-center justify-center text-[10px] text-white font-bold">2</div>
+                                    <i class="fas fa-cogs text-3xl text-indigo-600 mb-3 group-hover:scale-110 transition-transform mt-2"></i>
+                                    <h4 class="font-bold text-sm text-slate-800">Fábrica Crédito</h4>
+                                    <p class="text-[10px] text-slate-500 mt-2 leading-tight">Validación documental, análisis financiero y scoring del cliente.</p>
+                                    <div class="mt-auto w-full pt-3 border-t border-dashed border-indigo-100">
+                                        <span class="text-[9px] bg-orange-50 text-orange-600 px-2 py-1 rounded border border-orange-100 font-semibold block">Latencia en Burós</span>
+                                    </div>
+                                </div>
+                                <!-- Arrow -->
+                                <i class="fas fa-chevron-right text-slate-300 text-xl"></i>
+
+                                <!-- Step 3 -->
+                                <div class="w-1/5 bg-white border border-purple-200 p-5 rounded-xl shadow-sm text-center relative group hover:border-purple-400 transition-all hover:shadow-md cursor-pointer h-48 flex flex-col items-center">
+                                    <div class="w-6 h-6 bg-purple-500 rounded-full absolute -top-3 left-1/2 -translate-x-1/2 border-4 border-white shadow-sm flex items-center justify-center text-[10px] text-white font-bold">3</div>
+                                    <i class="fas fa-wallet text-3xl text-purple-600 mb-3 group-hover:scale-110 transition-transform mt-2"></i>
+                                    <h4 class="font-bold text-sm text-slate-800">Operaciones</h4>
+                                    <p class="text-[10px] text-slate-500 mt-2 leading-tight">Desembolso de recursos y constitución de garantías.</p>
+                                    <div class="mt-auto w-full pt-3 border-t border-dashed border-purple-100">
+                                        <span class="text-[9px] bg-yellow-50 text-yellow-600 px-2 py-1 rounded border border-yellow-100 font-semibold block">Garantía sin Avalúo</span>
+                                    </div>
+                                </div>
+                                <!-- Arrow -->
+                                <i class="fas fa-chevron-right text-slate-300 text-xl"></i>
+
+                                <!-- Step 4 -->
+                                <div class="w-1/5 bg-white border border-green-200 p-5 rounded-xl shadow-sm text-center relative group hover:border-green-400 transition-all hover:shadow-md cursor-pointer h-48 flex flex-col items-center">
+                                    <div class="w-6 h-6 bg-green-500 rounded-full absolute -top-3 left-1/2 -translate-x-1/2 border-4 border-white shadow-sm flex items-center justify-center text-[10px] text-white font-bold">4</div>
+                                    <i class="fas fa-chart-line text-3xl text-green-600 mb-3 group-hover:scale-110 transition-transform mt-2"></i>
+                                    <h4 class="font-bold text-sm text-slate-800">Riesgo</h4>
+                                    <p class="text-[10px] text-slate-500 mt-2 leading-tight">Seguimiento de cartera, calificación de mora y cálculo de provisiones.</p>
+                                    <div class="mt-auto w-full pt-3 border-t border-dashed border-green-100">
+                                        <span class="text-[9px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 font-semibold block">Cálculo Manual Excel</span>
+                                    </div>
+                                </div>
+                                <!-- Arrow -->
+                                <i class="fas fa-chevron-right text-slate-300 text-xl"></i>
+
+                                <!-- Step 5 -->
+                                <div class="w-1/5 bg-white border border-orange-200 p-5 rounded-xl shadow-sm text-center relative group hover:border-orange-400 transition-all hover:shadow-md cursor-pointer h-48 flex flex-col items-center">
+                                    <div class="w-6 h-6 bg-orange-500 rounded-full absolute -top-3 left-1/2 -translate-x-1/2 border-4 border-white shadow-sm flex items-center justify-center text-[10px] text-white font-bold">5</div>
+                                    <i class="fas fa-file-invoice text-3xl text-orange-600 mb-3 group-hover:scale-110 transition-transform mt-2"></i>
+                                    <h4 class="font-bold text-sm text-slate-800">Contabilidad</h4>
+                                    <p class="text-[10px] text-slate-500 mt-2 leading-tight">Registro en libros, conciliación y envío de reportes a la SFC.</p>
+                                    <div class="mt-auto w-full pt-3 border-t border-dashed border-orange-100">
+                                        <span class="text-[9px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 font-semibold block">Descuadre CUIF</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. Matriz GAP -->
+                <section id="matriz-gap">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-exclamation-triangle text-lg"></i></div>
+                        Brechas y Riesgos Regulatorios
+                    </h3>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-50 text-slate-700 font-bold text-xs uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="px-6 py-4">Norma / Requerimiento</th>
+                                    <th class="px-6 py-4">Brecha Identificada</th>
+                                    <th class="px-6 py-4">Impacto de Negocio</th>
+                                    <th class="px-6 py-4 text-center">Nivel</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-slate-900 w-1/4">SARC (Anexo 1 - Provisiones)</td>
+                                    <td class="px-6 py-4 text-slate-600 w-1/3">Cálculo de provisión individual se realiza en Excel sin control de versiones ni trazabilidad de cambios en la calificación.</td>
+                                    <td class="px-6 py-4 text-red-600 font-medium">Alta probabilidad de error en el Gasto por Provisión en el Estado de Resultados.</td>
+                                    <td class="px-6 py-4 text-center"><span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-red-200 tracking-wide">Crítico</span></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-slate-900 w-1/4">Reporte Centrales (Ley 1266)</td>
+                                    <td class="px-6 py-4 text-slate-600 w-1/3">Errores sistemáticos en el reporte de la "Fecha de Pago Real" vs "Fecha de Corte", generando inconsistencias.</td>
+                                    <td class="px-6 py-4 text-orange-600 font-medium">Riesgo reputacional, aumento de PQRs ante la SIC y posibles multas.</td>
+                                    <td class="px-6 py-4 text-center"><span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-orange-200 tracking-wide">Alto</span></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-slate-900 w-1/4">CUIF (Catálogo Único SFC)</td>
+                                    <td class="px-6 py-4 text-slate-600 w-1/3">Mapeo manual mensual de cuentas contables a códigos PUC para la transmisión del formato.</td>
+                                    <td class="px-6 py-4 text-yellow-600 font-medium">Ineficiencia operativa crítica y alta dependencia del conocimiento de una persona.</td>
+                                    <td class="px-6 py-4 text-center"><span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-yellow-200 tracking-wide">Medio</span></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-slate-900 w-1/4">SARLAFT (Segmentación)</td>
+                                    <td class="px-6 py-4 text-slate-600 w-1/3">Códigos de actividad económica (CIIU) desactualizados o genéricos en la base de clientes.</td>
+                                    <td class="px-6 py-4 text-red-600 font-medium">Imposibilidad de realizar una segmentación de riesgo LA/FT efectiva.</td>
+                                    <td class="px-6 py-4 text-center"><span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-red-200 tracking-wide">Alto</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 7. Hallazgos y Riesgos (Charts) -->
+                <section id="hallazgos">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-clipboard-list text-lg"></i></div>
+                        Priorización de Hallazgos y Riesgos
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                            <h4 class="font-bold text-slate-700 mb-6 text-center text-sm uppercase tracking-wider">Matriz de Riesgos de Datos</h4>
+                            <div class="relative h-80 w-full flex-1">
+                                <canvas id="riskMatrixChart"></canvas>
+                            </div>
+                            <p class="text-xs text-center text-slate-500 mt-4 bg-slate-50 p-2 rounded"><strong>Interpretación:</strong> Los riesgos en el cuadrante superior derecho (Alta Probabilidad / Alto Impacto) requieren mitigación inmediata en la Fase 1.</p>
+                        </div>
+                        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                            <h4 class="font-bold text-slate-700 mb-6 text-center text-sm uppercase tracking-wider">Impacto en Objetivos Estratégicos</h4>
+                            <div class="relative h-80 w-full flex-1 flex items-center justify-center">
+                                <canvas id="riskCorrelationChart"></canvas>
+                            </div>
+                            <p class="text-xs text-center text-slate-500 mt-4 bg-slate-50 p-2 rounded"><strong>Análisis:</strong> La mala calidad de datos afecta transversalmente la estrategia, con mayor impacto en la gestión del Riesgo de Crédito.</p>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Finding Cards -->
+                    <div class="space-y-6 mt-12">
+                        <!-- Hallazgo 1 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden finding-card finding-critical">
+                            <div class="p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="text-lg font-bold text-slate-800 flex items-center gap-3">
+                                        <span class="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-bold shadow-sm">1</span>
+                                        Discrepancia en Días de Mora y Saldos
+                                    </h4>
+                                    <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full uppercase border border-red-200">Riesgo Crítico</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+                                    <div class="space-y-2">
+                                        <p class="font-bold text-slate-700 text-xs uppercase tracking-wide border-b border-slate-200 pb-1">El Problema (Diagnóstico)</p>
+                                        <p class="text-slate-600 text-justify leading-relaxed">El Core Bancario y el Sistema de Cobranzas calculan la mora con lógicas diferentes (días calendario vs. días hábiles comerciales 360). Esto genera una "doble realidad" donde un cliente aparece "al día" en un sistema y "en mora" en otro, afectando la integridad de los saldos.</p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <p class="font-bold text-slate-700 text-xs uppercase tracking-wide border-b border-slate-200 pb-1">Impacto de Negocio</p>
+                                        <ul class="list-disc pl-4 text-slate-600 space-y-1">
+                                            <li>Reportes erróneos a Burós (Riesgo Legal/Sanciones).</li>
+                                            <li>Gestión de cobranza ineficiente (llamadas a clientes al día).</li>
+                                            <li>Cálculo incorrecto de la provisión de cartera.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-white p-4 rounded border border-blue-200 shadow-sm">
+                                        <p class="font-bold text-blue-700 mb-2 flex items-center gap-2"><i class="fas fa-tools"></i> Solución Arquitectura To-Be</p>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Implementación de un <strong>Motor de Cálculo Centralizado</strong> en la capa 'Plata' del Data Lakehouse que unifica la regla de negocio de 'Mora' y distribuye el dato calculado y validado a todos los sistemas satélites.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hallazgo 2 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden finding-card finding-high">
+                            <div class="p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="text-lg font-bold text-slate-800 flex items-center gap-3">
+                                        <span class="w-8 h-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-sm font-bold shadow-sm">2</span>
+                                        Datos de Garantías Desactualizados
+                                    </h4>
+                                    <span class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full uppercase border border-orange-200">Riesgo Alto</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+                                    <div class="space-y-2">
+                                        <p class="font-bold text-slate-700 text-xs uppercase tracking-wide border-b border-slate-200 pb-1">El Problema (Diagnóstico)</p>
+                                        <p class="text-slate-600 text-justify leading-relaxed">El 45% de las garantías hipotecarias y vehiculares no tienen un avalúo actualizado en el último año registrado en el sistema core. La información actualizada reside en carpetas físicas o PDFs no estructurados, invisibles para el sistema.</p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <p class="font-bold text-slate-700 text-xs uppercase tracking-wide border-b border-slate-200 pb-1">Impacto de Negocio</p>
+                                        <ul class="list-disc pl-4 text-slate-600 space-y-1">
+                                            <li>Mayor gasto en provisiones (al no poder deducir el valor real de la garantía admisible).</li>
+                                            <li>Incertidumbre sobre el valor de recuperación real (LGD).</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-white p-4 rounded border border-blue-200 shadow-sm">
+                                        <p class="font-bold text-blue-700 mb-2 flex items-center gap-2"><i class="fas fa-tools"></i> Solución Arquitectura To-Be</p>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Digitalización de avalúos y carga automática de valores al módulo de garantías. Implementación de una regla de calidad en <strong>TÓTAL QUALITY</strong> que alerta proactivamente el vencimiento de avalúos 60 días antes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hallazgo 3 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden finding-card finding-medium">
+                            <div class="p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="text-lg font-bold text-slate-800 flex items-center gap-3">
+                                        <span class="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-sm font-bold shadow-sm">3</span>
+                                        Fragmentación de Datos de Contacto
+                                    </h4>
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full uppercase border border-yellow-200">Operativo</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+                                    <div class="space-y-2">
+                                        <p class="font-bold text-slate-700 text-xs uppercase tracking-wide border-b border-slate-200 pb-1">El Problema (Diagnóstico)</p>
+                                        <p class="text-slate-600 text-justify leading-relaxed">Un mismo cliente tiene hasta 3 direcciones diferentes y 2 números de teléfono distintos dispersos entre el CRM de Originación y el Sistema de Cobranzas. No existe una "fuente dorada" para saber cuál es el dato de contacto vigente.</p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <p class="font-bold text-slate-700 text-xs uppercase tracking-wide border-b border-slate-200 pb-1">Impacto de Negocio</p>
+                                        <ul class="list-disc pl-4 text-slate-600 space-y-1">
+                                            <li>Baja tasa de contactabilidad en cobranza (< 40%).</li>
+                                            <li>Pérdida de eficiencia en campañas de marketing (SMS/Email).</li>
+                                            <li>Mala experiencia del cliente por comunicaciones duplicadas.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-white p-4 rounded border border-blue-200 shadow-sm">
+                                        <p class="font-bold text-blue-700 mb-2 flex items-center gap-2"><i class="fas fa-tools"></i> Solución Arquitectura To-Be</p>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Implementación de un sistema <strong>MDM (Master Data Management)</strong> de Clientes para crear un "Golden Record" unificado. Integración con fuentes externas para enriquecimiento y validación de datos de contacto.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- 8. Evaluación Riesgos -->
+                <section id="evaluacion-riesgos">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-shield-alt text-lg"></i></div>
+                        Evaluación de Riesgos Operativos
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500 relative overflow-hidden hover:shadow-lg transition-shadow group">
+                            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fas fa-money-bill-alt text-8xl"></i></div>
+                            <h4 class="font-bold text-slate-800 mb-3 text-lg">Fuga de Ingresos</h4>
+                            <p class="text-sm text-slate-600 leading-relaxed mb-4 text-justify">El <strong>35%</strong> de la base de clientes en mora temprana tiene datos de contacto inválidos, lo que impide la gestión de cobranza preventiva, aumentando el deterioro de la cartera y la pérdida de ingresos.</p>
+                            <span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100 uppercase tracking-wide">Impacto Financiero Directo</span>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-500 relative overflow-hidden hover:shadow-lg transition-shadow group">
+                            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fas fa-balance-scale text-8xl"></i></div>
+                            <h4 class="font-bold text-slate-800 mb-3 text-lg">Riesgo de Crédito</h4>
+                            <p class="text-sm text-slate-600 leading-relaxed mb-4 text-justify">Modelos de scoring alimentados con datos históricos "sucios" o incompletos generan aprobaciones a perfiles de alto riesgo (falsos positivos) o rechazos injustificados a buenos clientes (costo de oportunidad).</p>
+                            <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 uppercase tracking-wide">Deterioro de Cartera</span>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500 relative overflow-hidden hover:shadow-lg transition-shadow group">
+                            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fas fa-calculator text-8xl"></i></div>
+                            <h4 class="font-bold text-slate-800 mb-3 text-lg">Reprocesos</h4>
+                            <p class="text-sm text-slate-600 leading-relaxed mb-4 text-justify">Los descuadres recurrentes entre el módulo operativo de cartera y la contabilidad general obligan al equipo financiero a realizar ajustes manuales masivos a fin de mes, retrasando el cierre contable.</p>
+                            <span class="text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded border border-yellow-100 uppercase tracking-wide">Ineficiencia Operativa</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 9. Capacidad de Respuesta -->
+                <section id="capacidad-respuesta">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-stopwatch text-lg"></i></div>
+                        Capacidad Operativa y Time-to-Market
+                    </h3>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead class="bg-slate-50 font-bold text-slate-700 text-xs uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="px-8 py-5">Indicador de Negocio</th>
+                                    <th class="px-8 py-5">Estado Actual (As-Is)</th>
+                                    <th class="px-8 py-5">Meta (To-Be)</th>
+                                    <th class="px-8 py-5">Habilitador de Datos</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-8 py-5 font-bold text-slate-800">Tiempo Aprobación Crédito</td>
+                                    <td class="px-8 py-5"><span class="inline-flex items-center gap-2 px-3 py-1.5 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fas fa-clock"></i> 3 Días</span></td>
+                                    <td class="px-8 py-5"><span class="inline-flex items-center gap-2 px-3 py-1.5 rounded text-xs font-bold bg-green-100 text-green-700 border border-green-200"><i class="fas fa-bolt"></i> 5 Minutos</span></td>
+                                    <td class="px-8 py-5 text-xs text-slate-500 leading-snug">Integración en tiempo real con Burós y Motores de Reglas de decisión automatizados.</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-8 py-5 font-bold text-slate-800">Cierre Contable Mensual</td>
+                                    <td class="px-8 py-5"><span class="inline-flex items-center gap-2 px-3 py-1.5 rounded text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200"><i class="fas fa-calendar-times"></i> Día +10</span></td>
+                                    <td class="px-8 py-5"><span class="inline-flex items-center gap-2 px-3 py-1.5 rounded text-xs font-bold bg-green-100 text-green-700 border border-green-200"><i class="fas fa-calendar-check"></i> Día +2</span></td>
+                                    <td class="px-8 py-5 text-xs text-slate-500 leading-snug">Automatización de ETLs contables y conciliación diaria de cifras.</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-8 py-5 font-bold text-slate-800">Tasa Contacto Cobranza</td>
+                                    <td class="px-8 py-5"><span class="inline-flex items-center gap-2 px-3 py-1.5 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fas fa-phone-slash"></i> 40%</span></td>
+                                    <td class="px-8 py-5"><span class="inline-flex items-center gap-2 px-3 py-1.5 rounded text-xs font-bold bg-green-100 text-green-700 border border-green-200"><i class="fas fa-phone"></i> 70%</span></td>
+                                    <td class="px-8 py-5 text-xs text-slate-500 leading-snug">Limpieza, estandarización y enriquecimiento continuo de datos de contacto.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 10. Modelo To-Be (Architecture) -->
+                <section id="modelo-futuro">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-cubes text-lg"></i></div>
+                        Arquitectura de Datos Financiera "To-Be"
+                    </h3>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                        <p class="mb-8 text-slate-600 text-sm leading-relaxed max-w-4xl">
+                            El diseño propuesto se basa en una arquitectura de <strong>Data Lakehouse</strong>. Este enfoque moderno combina la flexibilidad de un Data Lake para almacenar datos no estructurados con la gestión y calidad de un Data Warehouse para datos financieros críticos. Centraliza la ingesta de datos operacionales, aplica reglas de calidad rigurosas y dispone la información para consumo regulatorio (SFC) y analítico (Scoring).
+                        </p>
+                        
+                        <div class="border border-slate-200 rounded-xl p-8 bg-slate-50/50 shadow-inner">
+                            <svg width="100%" viewBox="0 0 900 450" xmlns="http://www.w3.org/2000/svg" class="font-sans">
+                                <!-- Architecture Diagram -->
+                                <rect x="0" y="0" width="900" height="450" fill="none"/>
+                                
+                                <!-- Background Zones with distinct colors -->
+                                <rect x="40" y="40" width="140" height="370" fill="#f1f5f9" rx="8" stroke="#cbd5e1" stroke-dasharray="4"/>
+                                <text x="110" y="30" text-anchor="middle" font-weight="bold" font-size="11" fill="#64748b">FUENTES OPERACIONALES</text>
+                                
+                                <rect x="220" y="40" width="440" height="370" fill="#eff6ff" rx="8" stroke="#60a5fa" stroke-width="1.5"/>
+                                <text x="440" y="30" text-anchor="middle" font-weight="bold" font-size="11" fill="#2563eb">PLATAFORMA DE DATOS (TÓTAL REPORT®)</text>
+                                
+                                <rect x="700" y="40" width="160" height="370" fill="#f0fdf4" rx="8" stroke="#86efac" stroke-dasharray="4"/>
+                                <text x="780" y="30" text-anchor="middle" font-weight="bold" font-size="11" fill="#16a34a">CONSUMO DE VALOR</text>
+
+                                <!-- Sources Nodes -->
+                                <g transform="translate(60, 70)"><rect width="100" height="40" rx="4" fill="white" stroke="#94a3b8" class="shadow-sm"/><text x="50" y="25" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">Core Bancario</text></g>
+                                <g transform="translate(60, 130)"><rect width="100" height="40" rx="4" fill="white" stroke="#94a3b8" class="shadow-sm"/><text x="50" y="25" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">Fábrica Crédito</text></g>
+                                <g transform="translate(60, 190)"><rect width="100" height="40" rx="4" fill="white" stroke="#94a3b8" class="shadow-sm"/><text x="50" y="25" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">Cobranzas</text></g>
+                                <g transform="translate(60, 250)"><rect width="100" height="40" rx="4" fill="white" stroke="#94a3b8" class="shadow-sm"/><text x="50" y="25" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">Tesorería</text></g>
+                                <g transform="translate(60, 310)"><rect width="100" height="40" rx="4" fill="white" stroke="#94a3b8" class="shadow-sm"/><text x="50" y="25" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">Burós (Externo)</text></g>
+
+                                <!-- Ingestion & ETL -->
+                                <g transform="translate(240, 190)">
+                                    <circle cx="40" cy="40" r="35" fill="white" stroke="#3b82f6" stroke-width="2"/>
+                                    <text x="40" y="45" text-anchor="middle" font-size="9" font-weight="bold" fill="#2563eb">ETL & Calidad</text>
+                                </g>
+
+                                <!-- Data Lakehouse Layers -->
+                                <g transform="translate(350, 90)">
+                                    <rect width="140" height="240" rx="6" fill="white" stroke="#1e40af" stroke-width="2" class="shadow-md"/>
+                                    <text x="70" y="30" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">DATA LAKEHOUSE</text>
+                                    <rect x="20" y="50" width="100" height="35" rx="3" fill="#e2e8f0"/><text x="70" y="72" text-anchor="middle" font-size="9" fill="#475569">1. Bronce (Crudo)</text>
+                                    <rect x="20" y="100" width="100" height="35" rx="3" fill="#bfdbfe"/><text x="70" y="122" text-anchor="middle" font-size="9" fill="#1e3a8a">2. Plata (Limpio)</text>
+                                    <rect x="20" y="150" width="100" height="35" rx="3" fill="#fcd34d"/><text x="70" y="172" text-anchor="middle" font-size="9" fill="#78350f">3. Oro (Negocio)</text>
+                                </g>
+
+                                <!-- Governance Layer -->
+                                <g transform="translate(240, 360)">
+                                    <rect width="400" height="30" rx="15" fill="#fffbeb" stroke="#d97706"/>
+                                    <text x="200" y="20" text-anchor="middle" font-size="10" font-bold="true" fill="#b45309">GOBIERNO TRANSVERSAL: Seguridad, Catálogo, Linaje</text>
+                                </g>
+
+                                <!-- Consumption Nodes -->
+                                <g transform="translate(720, 70)"><rect width="120" height="50" rx="4" fill="white" stroke="#16a34a" class="shadow-sm"/><text x="60" y="20" text-anchor="middle" font-size="10" font-weight="bold" fill="#14532d">Regulatorio</text><text x="60" y="35" text-anchor="middle" font-size="9" fill="#64748b">SFC / DIAN</text></g>
+                                <g transform="translate(720, 150)"><rect width="120" height="50" rx="4" fill="white" stroke="#16a34a" class="shadow-sm"/><text x="60" y="20" text-anchor="middle" font-size="10" font-weight="bold" fill="#14532d">Riesgos</text><text x="60" y="35" text-anchor="middle" font-size="9" fill="#64748b">Scoring / Provisiones</text></g>
+                                <g transform="translate(720, 230)"><rect width="120" height="50" rx="4" fill="white" stroke="#16a34a" class="shadow-sm"/><text x="60" y="20" text-anchor="middle" font-size="10" font-weight="bold" fill="#14532d">Comercial</text><text x="60" y="35" text-anchor="middle" font-size="9" fill="#64748b">CRM / BI</text></g>
+                                
+                                <!-- Connections -->
+                                <path d="M160 90 L240 210" stroke="#94a3b8" stroke-width="1" fill="none"/>
+                                <path d="M160 150 L240 210" stroke="#94a3b8" stroke-width="1" fill="none"/>
+                                <path d="M160 210 L240 210" stroke="#94a3b8" stroke-width="1" fill="none"/>
+                                <path d="M320 230 L350 230" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                                <path d="M490 150 L720 95" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4" fill="none"/>
+                                <path d="M490 180 L720 175" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4" fill="none"/>
+                                <path d="M490 210 L720 255" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4" fill="none"/>
+
+                                <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#3b82f6" /></marker></defs>
+                            </svg>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 11. Linaje de Datos -->
+                <section id="linaje-datos">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-route text-lg"></i></div>
+                        Trazabilidad: Ciclo de Vida del Dato
+                    </h3>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-sm text-slate-600 mb-4">Visualización del flujo del dato crítico <strong>"Saldo de Capital en Mora"</strong>, desde la transacción en el Core hasta el reporte CUIF, asegurando la integridad financiera.</p>
+                        <div id="sankey-chart" class="w-full h-80 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center overflow-hidden"></div>
+                    </div>
+                </section>
+
+                <!-- 12. Monitoreo Automatizado (Enhanced Dashboard Mockup) -->
+                <section id="monitoreo-automatizado">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-desktop text-lg"></i></div>
+                        Tablero de Monitoreo de Calidad
+                    </h3>
+                    <div class="bg-slate-900 p-8 rounded-xl shadow-2xl text-white relative overflow-hidden">
+                        <!-- Dashboard Header -->
+                        <div class="flex justify-between items-center mb-8 relative z-10">
+                            <div>
+                                <h4 class="font-bold text-slate-200 text-lg">Estado de Calidad de Datos</h4>
+                                <p class="text-xs text-slate-500">Última actualización: Hoy, 14:35 PM</p>
+                            </div>
+                            <div class="flex items-center gap-2 px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-xs font-bold border border-green-500/20">
+                                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Sistema Operativo
+                            </div>
+                        </div>
+
+                        <!-- Key Metrics Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 relative z-10">
+                            <!-- Metric 1 -->
+                            <div class="dash-stat danger bg-slate-800 p-4 rounded-lg shadow-sm border-t border-r border-b border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Errores Críticos</p>
+                                <h3 class="text-3xl font-mono text-white mt-1">24</h3>
+                                <p class="text-[10px] text-red-400 mt-2 flex items-center gap-1"><i class="fas fa-arrow-up"></i> 12% vs ayer</p>
+                            </div>
+                            <!-- Metric 2 -->
+                            <div class="dash-stat warning bg-slate-800 p-4 rounded-lg shadow-sm border-t border-r border-b border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Datos Corregidos</p>
+                                <h3 class="text-3xl font-mono text-white mt-1">1,840</h3>
+                                <p class="text-[10px] text-orange-400 mt-2 flex items-center gap-1"><i class="fas fa-check"></i> Auto-sanación</p>
+                            </div>
+                            <!-- Metric 3 -->
+                            <div class="dash-stat success bg-slate-800 p-4 rounded-lg shadow-sm border-t border-r border-b border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Disponibilidad ETL</p>
+                                <h3 class="text-3xl font-mono text-white mt-1">99.9%</h3>
+                                <p class="text-[10px] text-green-400 mt-2 flex items-center gap-1"><i class="fas fa-server"></i> SLA OK</p>
+                            </div>
+                            <!-- Metric 4 -->
+                            <div class="dash-stat success bg-slate-800 p-4 rounded-lg shadow-sm border-t border-r border-b border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Integridad Ref</p>
+                                <h3 class="text-3xl font-mono text-white mt-1">100%</h3>
+                                <p class="text-[10px] text-green-400 mt-2 flex items-center gap-1"><i class="fas fa-link"></i> Sin huérfanos</p>
+                            </div>
+                        </div>
+
+                        <!-- Alert Feed -->
+                        <div class="bg-slate-800 rounded-lg border border-slate-700 p-5 relative z-10">
+                            <h5 class="text-xs font-bold text-slate-400 uppercase mb-4 tracking-wider">Feed de Alertas en Tiempo Real</h5>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between text-xs p-3 bg-slate-700/50 rounded hover:bg-slate-700 transition-colors cursor-pointer border-l-2 border-red-500">
+                                    <span class="flex items-center gap-3 text-red-200">
+                                        <i class="fas fa-exclamation-circle text-red-500"></i> 
+                                        <strong>Descuadre Cartera > 1%</strong> (Core vs Contabilidad)
+                                    </span>
+                                    <span class="text-slate-500 font-mono">Hace 10 min</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs p-3 bg-slate-700/50 rounded hover:bg-slate-700 transition-colors cursor-pointer border-l-2 border-orange-500">
+                                    <span class="flex items-center gap-3 text-orange-200">
+                                        <i class="fas fa-clock text-orange-500"></i> 
+                                        <strong>Retraso carga archivo Recaudos</strong> (Banco Externo)
+                                    </span>
+                                    <span class="text-slate-500 font-mono">Hace 45 min</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs p-3 bg-slate-700/50 rounded hover:bg-slate-700 transition-colors cursor-pointer border-l-2 border-blue-500">
+                                    <span class="flex items-center gap-3 text-blue-200">
+                                        <i class="fas fa-info-circle text-blue-500"></i> 
+                                        <strong>Actualización Masiva de Tasas</strong> (Detectada)
+                                    </span>
+                                    <span class="text-slate-500 font-mono">Hace 2h</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 13. Política de Gobierno -->
+                <section id="politica-gobierno">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-gavel text-lg"></i></div>
+                        Política de Gobierno de Datos
+                    </h3>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <p class="mb-8 text-sm text-slate-600">Principios fundamentales que regirán la gestión de la información en Financiera Atlas, estableciendo las reglas del juego para todos los colaboradores:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-6 rounded-lg border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all group">
+                                <h5 class="font-bold text-slate-800 flex items-center gap-2 mb-3 text-sm"><i class="fas fa-crown text-blue-600 bg-blue-50 p-2 rounded-full"></i> Propiedad del Dato</h5>
+                                <p class="text-xs text-slate-600 text-justify leading-relaxed group-hover:text-slate-800">Los datos tienen dueños de negocio (ej. VP Riesgo es dueño de datos de Mora), no TI. Ellos son responsables de definir las reglas de negocio, la calidad esperada y los niveles de acceso.</p>
+                            </div>
+                            <div class="p-6 rounded-lg border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all group">
+                                <h5 class="font-bold text-slate-800 flex items-center gap-2 mb-3 text-sm"><i class="fas fa-check-double text-green-600 bg-green-50 p-2 rounded-full"></i> Calidad en Origen</h5>
+                                <p class="text-xs text-slate-600 text-justify leading-relaxed group-hover:text-slate-800">"Quien crea el dato es responsable de su calidad". Se elimina la cultura de limpieza posterior; se implementan validaciones en el punto de entrada para garantizar datos correctos desde el inicio.</p>
+                            </div>
+                            <div class="p-6 rounded-lg border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all group">
+                                <h5 class="font-bold text-slate-800 flex items-center gap-2 mb-3 text-sm"><i class="fas fa-book text-indigo-600 bg-indigo-50 p-2 rounded-full"></i> Diccionario Único</h5>
+                                <p class="text-xs text-slate-600 text-justify leading-relaxed group-hover:text-slate-800">Definición estandarizada de términos de negocio para toda la organización. Se elimina la ambigüedad en conceptos clave como "Cliente Vinculado", "Castigo" o "Mora Contable".</p>
+                            </div>
+                            <div class="p-6 rounded-lg border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all group">
+                                <h5 class="font-bold text-slate-800 flex items-center gap-2 mb-3 text-sm"><i class="fas fa-user-shield text-red-600 bg-red-50 p-2 rounded-full"></i> Seguridad y Acceso</h5>
+                                <p class="text-xs text-slate-600 text-justify leading-relaxed group-hover:text-slate-800">Clasificación estricta de la información (Pública, Interna, Confidencial) y gestión de roles basada en el principio de menor privilegio, asegurando el cumplimiento de Habeas Data.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 14. Catálogo y KPIs -->
+                <section id="catalogo-kpi">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-chart-bar text-lg"></i></div>
+                        KPIs de Calidad de Datos
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Card 1 -->
+                        <div class="card-hover bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide relative z-10">Completitud Clientes</p>
+                            <h3 class="text-4xl font-extrabold text-slate-800 mt-2 relative z-10">82%</h3>
+                            <div class="flex items-center gap-2 mt-2 text-xs font-bold text-red-500 relative z-10 bg-red-50 w-fit px-2 py-0.5 rounded"><i class="fas fa-arrow-down"></i> Meta: 98%</div>
+                            <div class="w-full bg-slate-100 h-1.5 mt-4 rounded-full"><div class="bg-red-500 h-full w-[82%] rounded-full shadow"></div></div>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="card-hover bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                             <div class="absolute top-0 right-0 w-16 h-16 bg-orange-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide relative z-10">Exactitud Mora</p>
+                            <h3 class="text-4xl font-extrabold text-slate-800 mt-2 relative z-10">91%</h3>
+                            <div class="flex items-center gap-2 mt-2 text-xs font-bold text-orange-500 relative z-10 bg-orange-50 w-fit px-2 py-0.5 rounded"><i class="fas fa-minus"></i> Riesgo Medio</div>
+                            <div class="w-full bg-slate-100 h-1.5 mt-4 rounded-full"><div class="bg-orange-500 h-full w-[91%] rounded-full shadow"></div></div>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="card-hover bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                             <div class="absolute top-0 right-0 w-16 h-16 bg-red-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide relative z-10">Vigencia Garantías</p>
+                            <h3 class="text-4xl font-extrabold text-slate-800 mt-2 relative z-10">76%</h3>
+                            <div class="flex items-center gap-2 mt-2 text-xs font-bold text-red-500 relative z-10 bg-red-50 w-fit px-2 py-0.5 rounded"><i class="fas fa-exclamation"></i> Crítico</div>
+                            <div class="w-full bg-slate-100 h-1.5 mt-4 rounded-full"><div class="bg-red-500 h-full w-[76%] rounded-full shadow"></div></div>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="card-hover bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                             <div class="absolute top-0 right-0 w-16 h-16 bg-green-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide relative z-10">Cruce Burós</p>
+                            <h3 class="text-4xl font-extrabold text-slate-800 mt-2 relative z-10">99%</h3>
+                            <div class="flex items-center gap-2 mt-2 text-xs font-bold text-green-500 relative z-10 bg-green-50 w-fit px-2 py-0.5 rounded"><i class="fas fa-check"></i> Óptimo</div>
+                            <div class="w-full bg-slate-100 h-1.5 mt-4 rounded-full"><div class="bg-green-500 h-full w-[99%] rounded-full shadow"></div></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">Tendencia Histórica de Calidad (6 Meses)</h4>
+                        <div class="h-72 w-full">
+                            <canvas id="qualityTrendChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 15. RACI y Calidad -->
+                <section id="raci-dq">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-users-cog text-lg"></i></div>
+                        Matriz de Responsabilidades (RACI)
+                    </h3>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-sm text-slate-600 mb-6 max-w-3xl">Asignación clara de roles para asegurar la sostenibilidad del modelo de gobierno, evitando la duplicidad de funciones y asegurando la rendición de cuentas.</p>
+                        <div class="overflow-x-auto rounded-lg border border-slate-200">
+                            <table class="w-full text-sm text-center border-collapse">
+                                <thead class="bg-slate-50 font-bold text-slate-700 text-xs uppercase">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left rounded-tl-lg border-r border-slate-200 bg-slate-100">Actividad de Datos</th>
+                                        <th class="px-6 py-4 border-r border-slate-200">Negocio (Owner)</th>
+                                        <th class="px-6 py-4 border-r border-slate-200">TI (Steward)</th>
+                                        <th class="px-6 py-4 border-r border-slate-200">Oficina Datos (CDO)</th>
+                                        <th class="px-6 py-4 rounded-tr-lg">Comité Directivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-slate-600 divide-y divide-slate-100">
+                                    <tr class="hover:bg-blue-50/30 transition-colors">
+                                        <td class="px-6 py-4 text-left font-medium border-r border-slate-100">Definir Reglas de Negocio</td>
+                                        <td class="px-6 py-4 border-r border-slate-100"><span class="bg-green-100 text-green-700 font-bold px-2 py-1 rounded">R</span></td>
+                                        <td class="px-6 py-4 border-r border-slate-100">C</td>
+                                        <td class="px-6 py-4 border-r border-slate-100">A</td>
+                                        <td class="px-6 py-4">I</td>
+                                    </tr>
+                                    <tr class="hover:bg-blue-50/30 transition-colors">
+                                        <td class="px-6 py-4 text-left font-medium border-r border-slate-100">Corrección de Datos Erróneos</td>
+                                        <td class="px-6 py-4 border-r border-slate-100">I</td>
+                                        <td class="px-6 py-4 border-r border-slate-100"><span class="bg-green-100 text-green-700 font-bold px-2 py-1 rounded">R</span></td>
+                                        <td class="px-6 py-4 border-r border-slate-100">C</td>
+                                        <td class="px-6 py-4">I</td>
+                                    </tr>
+                                    <tr class="hover:bg-blue-50/30 transition-colors">
+                                        <td class="px-6 py-4 text-left font-medium border-r border-slate-100">Aprobar Diccionario de Datos</td>
+                                        <td class="px-6 py-4 border-r border-slate-100">C</td>
+                                        <td class="px-6 py-4 border-r border-slate-100">C</td>
+                                        <td class="px-6 py-4 border-r border-slate-100"><span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded">A</span></td>
+                                        <td class="px-6 py-4">I</td>
+                                    </tr>
+                                    <tr class="hover:bg-blue-50/30 transition-colors">
+                                        <td class="px-6 py-4 text-left font-medium border-r border-slate-100">Priorizar Dominios (Roadmap)</td>
+                                        <td class="px-6 py-4 border-r border-slate-100">C</td>
+                                        <td class="px-6 py-4 border-r border-slate-100">C</td>
+                                        <td class="px-6 py-4 border-r border-slate-100">R</td>
+                                        <td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded">A</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-center gap-6 text-xs text-slate-500">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> <strong>R:</strong> Responsable</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> <strong>A:</strong> Aprobador</span>
+                            <span><strong>C:</strong> Consultado</span>
+                            <span><strong>I:</strong> Informado</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 16. Tecnologías Habilitadoras -->
+                <section id="tecnologias-habilitadoras">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-server text-lg"></i></div>
+                        Stack Tecnológico
+                    </h3>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="p-6 border rounded-xl bg-gradient-to-b from-white to-slate-50 border-slate-200 text-center card-hover group">
+                                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl group-hover:scale-110 transition-transform"><i class="fas fa-database"></i></div>
+                                <h4 class="font-bold text-slate-800 mb-2">TÓTAL INTEGRATION®</h4>
+                                <p class="text-xs text-slate-500 leading-relaxed">Hub central de integración (ETL/ELT) para conectar Core, CRM y ERP en tiempo real, eliminando la latencia de datos.</p>
+                            </div>
+                            <div class="p-6 border rounded-xl bg-gradient-to-b from-white to-slate-50 border-slate-200 text-center card-hover group">
+                                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl group-hover:scale-110 transition-transform"><i class="fas fa-check-circle"></i></div>
+                                <h4 class="font-bold text-slate-800 mb-2">TÓTAL QUALITY®</h4>
+                                <p class="text-xs text-slate-500 leading-relaxed">Motor de reglas de calidad para perfilamiento y limpieza automática de datos, asegurando la confiabilidad para los modelos de riesgo.</p>
+                            </div>
+                            <div class="p-6 border rounded-xl bg-gradient-to-b from-white to-slate-50 border-slate-200 text-center card-hover group">
+                                <div class="w-14 h-14 bg-violet-100 text-violet-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl group-hover:scale-110 transition-transform"><i class="fas fa-sitemap"></i></div>
+                                <h4 class="font-bold text-slate-800 mb-2">TÓTAL GOVERNANCE®</h4>
+                                <p class="text-xs text-slate-500 leading-relaxed">Plataforma de gobierno que gestiona el catálogo de datos empresarial, diccionario de negocio y linaje visual de extremo a extremo.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 17. Cultura de Datos -->
+                <section id="cultura-datos">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-brain text-lg"></i></div>
+                        Cultura Data-Driven
+                    </h3>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-10 items-center">
+                        <div class="w-full md:w-1/2">
+                            <p class="text-sm text-slate-600 mb-6 leading-relaxed text-justify font-medium">El éxito del gobierno de datos depende en un 80% de las personas y un 20% de la tecnología. Nuestro diagnóstico de cultura identifica brechas significativas en la alfabetización de datos (Data Literacy) de los equipos comerciales y operativos.</p>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3 bg-red-50 p-3 rounded border border-red-100">
+                                    <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm flex-shrink-0"><i class="fas fa-times"></i></div>
+                                    <span class="text-xs text-slate-700">Decisiones basadas en intuición, no en datos.</span>
+                                </div>
+                                <div class="flex items-center gap-3 bg-red-50 p-3 rounded border border-red-100">
+                                    <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm flex-shrink-0"><i class="fas fa-times"></i></div>
+                                    <span class="text-xs text-slate-700">Desconfianza generalizada en los reportes centralizados.</span>
+                                </div>
+                                <div class="flex items-center gap-3 bg-red-50 p-3 rounded border border-red-100">
+                                    <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm flex-shrink-0"><i class="fas fa-times"></i></div>
+                                    <span class="text-xs text-slate-700">Resistencia a compartir datos entre áreas (Mentalidad de Silo).</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/2 h-72">
+                            <canvas id="cultureChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 18. Gemelos Digitales -->
+                <section id="gemelos-digitales">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-clone text-lg"></i></div>
+                        Simulación y Gemelos Digitales
+                    </h3>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-sm text-slate-600 mb-6">Creación de réplicas virtuales de la cartera de crédito para simular escenarios financieros complejos sin riesgo operativo en producción.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-6 bg-white rounded-lg border border-slate-200 flex items-start gap-4 hover:shadow-lg transition-all cursor-pointer group">
+                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"><i class="fas fa-chart-area"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-700 text-sm mb-1">Stress Testing de Cartera</h4>
+                                    <p class="text-xs text-slate-500 leading-relaxed">Simular el impacto en el ICV (Índice de Cartera Vencida) y la solvencia ante subidas de tasas de interés o aumento del desempleo.</p>
+                                </div>
+                            </div>
+                            <div class="p-6 bg-white rounded-lg border border-slate-200 flex items-start gap-4 hover:shadow-lg transition-all cursor-pointer group">
+                                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"><i class="fas fa-calculator"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-700 text-sm mb-1">Proyección NIIF 9</h4>
+                                    <p class="text-xs text-slate-500 leading-relaxed">Predecir el aumento en el gasto de provisiones y el impacto en P&L bajo diferentes escenarios macroeconómicos futuros.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 19. Interoperabilidad -->
+                <section id="interoperabilidad">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-exchange-alt text-lg"></i></div>
+                        Open Finance & APIs
+                    </h3>
+                    <div class="bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden shadow-lg">
+                        <div class="absolute top-0 right-0 p-8 opacity-10 text-9xl"><i class="fas fa-network-wired"></i></div>
+                        <div class="relative z-10">
+                            <h3 class="text-xl font-bold mb-2">Estrategia de Ecosistema Abierto</h3>
+                            <p class="text-slate-300 mb-6 text-sm leading-relaxed max-w-xl">Preparación de la arquitectura de datos para la exposición segura de servicios financieros mediante APIs estandarizadas, permitiendo nuevos modelos de negocio y cumplimiento con la regulación futura.</p>
+                            
+                            <div class="flex flex-wrap gap-4">
+                                <div class="px-4 py-3 bg-slate-800 rounded-lg border border-slate-700 text-xs font-mono text-blue-400 flex items-center gap-3 hover:border-blue-400 transition-colors cursor-code hover:bg-slate-700/50">
+                                    <span class="px-1.5 py-0.5 bg-blue-900/50 rounded text-[10px] font-bold border border-blue-800">GET</span> 
+                                    /accounts/{id}/balance
+                                </div>
+                                <div class="px-4 py-3 bg-slate-800 rounded-lg border border-slate-700 text-xs font-mono text-green-400 flex items-center gap-3 hover:border-green-400 transition-colors cursor-code hover:bg-slate-700/50">
+                                    <span class="px-1.5 py-0.5 bg-green-900/50 rounded text-[10px] font-bold border border-green-800">POST</span> 
+                                    /payments/initiate
+                                </div>
+                                <div class="px-4 py-3 bg-slate-800 rounded-lg border border-slate-700 text-xs font-mono text-purple-400 flex items-center gap-3 hover:border-purple-400 transition-colors cursor-code hover:bg-slate-700/50">
+                                    <span class="px-1.5 py-0.5 bg-purple-900/50 rounded text-[10px] font-bold border border-purple-800">GET</span> 
+                                    /credit-score/{id}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 20. Roadmap -->
+                <section id="roadmap">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-road text-lg"></i></div>
+                        Hoja de Ruta de Implementación
+                    </h3>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-end mb-6 px-2">
+                            <p class="text-sm text-slate-600 max-w-2xl">Plan estructurado a 18 meses para alcanzar el nivel "Gestionado", balanceando victorias tempranas con cambios estructurales.</p>
+                            <span class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold border border-blue-200">Q3 2025 - Q4 2026</span>
+                        </div>
+                        <div id="gantt-container" class="gantt-container"></div>
+                    </div>
+                </section>
+
+                <!-- 21. Recomendaciones -->
+                <section id="recomendaciones">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-check-square text-lg"></i></div>
+                        Recomendaciones Estratégicas
+                    </h3>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                        <div class="space-y-6">
+                            <div class="flex gap-5 items-start p-4 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100">
+                                <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold shadow-lg shadow-blue-200 text-xl transform hover:scale-110 transition-transform">1</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-lg">Formalizar la Oficina de Datos (CDO)</h4>
+                                    <p class="text-sm text-slate-600 mt-2 leading-relaxed">Establecer un liderazgo ejecutivo dedicado a la estrategia de datos, independiente de la vicepresidencia de Tecnología, con reporte directo a Gerencia General para asegurar la neutralidad y visión de negocio.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-5 items-start p-4 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100">
+                                <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold shadow-lg shadow-blue-200 text-xl transform hover:scale-110 transition-transform">2</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-lg">Calidad Preventiva (Front-End)</h4>
+                                    <p class="text-sm text-slate-600 mt-2 leading-relaxed">Implementar reglas de validación estrictas en el software de originación de crédito y CRM para evitar la entrada de datos sucios desde el primer contacto con el cliente (Quality at Source).</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-5 items-start p-4 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100">
+                                <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold shadow-lg shadow-blue-200 text-xl transform hover:scale-110 transition-transform">3</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-lg">Automatización Regulatoria</h4>
+                                    <p class="text-sm text-slate-600 mt-2 leading-relaxed">Priorizar la automatización de los reportes críticos CUIF y SARC mediante ETLs certificados, reduciendo el riesgo operativo y liberando el 40% del tiempo de los analistas para tareas de valor.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 22. Conclusiones -->
+                <section id="conclusiones">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-flag-checkered text-lg"></i></div>
+                        Conclusiones Finales
+                    </h3>
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-10 rounded-xl shadow-lg text-white relative overflow-hidden">
+                         <div class="absolute top-0 right-0 p-10 opacity-5 text-9xl"><i class="fas fa-quote-right"></i></div>
+                        <div class="flex items-start gap-6 relative z-10">
+                            <i class="fas fa-quote-left text-5xl text-slate-600"></i>
+                            <div class="space-y-6">
+                                <p class="text-lg leading-relaxed font-light text-slate-200 text-justify">
+                                    La adopción del modelo de <strong>Gobierno de Datos Corporativo</strong> no es una opción, es un imperativo para la sostenibilidad de Financiera Atlas. Al transformar los datos en un activo confiable y gobernado, la entidad no solo mitigará riesgos regulatorios y operativos, sino que habilitará nuevas capacidades competitivas en el mercado digital.
+                                </p>
+                                <p class="text-lg leading-relaxed font-light text-slate-200 text-justify">
+                                    La inversión en gobierno de datos retornará en forma de eficiencia operativa, reducción de provisiones por mejor calidad de información y aumento de ingresos por una gestión comercial más asertiva.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-12 pt-8 border-t border-slate-700/50 flex justify-between items-end relative z-10">
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase tracking-widest mb-1">Informe Final</p>
+                                <p class="text-base font-bold text-white">Mayo 2025</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-blue-400">JW Project House</p>
+                                <p class="text-sm text-slate-500">Consultoría en Estrategia de Datos</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Chat Widget -->
+    <div id="totalia-chat-widget" class="fixed bottom-6 right-6 z-50">
+        <div id="chat-popup" class="hidden absolute bottom-20 right-0 w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col h-[500px] overflow-hidden transform origin-bottom-right transition-all duration-300">
+            <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <h3 class="font-bold text-sm">Asistente Financiero AI</h3>
+                </div>
+                <button id="close-chat" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="chat-window" class="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-4">
+                <div class="flex justify-start">
+                    <div class="chat-bubble-ai p-3 text-xs shadow-sm max-w-[85%] leading-relaxed">
+                        Hola 👋. Soy tu experto en datos financieros. ¿Tienes dudas sobre el impacto de la calidad de datos en las provisiones de cartera o el roadmap de implementación?
+                    </div>
+                </div>
+            </div>
+            <div class="p-3 bg-white border-t border-slate-100">
+                <div class="flex items-center bg-slate-100 rounded-full px-4 py-2 border border-slate-200 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition-all">
+                    <input type="text" id="chat-input" class="flex-1 bg-transparent text-xs focus:outline-none text-slate-700" placeholder="Escribe tu consulta...">
+                    <button id="chat-submit" class="text-blue-600 hover:text-blue-700 ml-2"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+        <button id="open-chat" class="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg shadow-blue-600/30 flex items-center justify-center hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300 transform">
+            <i class="fas fa-robot text-2xl"></i>
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Chart Global Config
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#64748b';
+            
+            const chartConfig = { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } } 
+            };
+
+            // 1. Gauge Chart (Madurez)
+            const gaugeCtx = document.getElementById('gaugeMaturityChart')?.getContext('2d');
+            if(gaugeCtx) {
+                new Chart(gaugeCtx, {
+                    type: 'doughnut',
+                    data: { 
+                        labels: ['Actual', 'Brecha'], 
+                        datasets: [{ 
+                            data: [2.0, 3.0], 
+                            backgroundColor: ['#2563eb', '#e2e8f0'], 
+                            borderWidth: 0, 
+                            circumference: 180, 
+                            rotation: 270, 
+                            cutout: '85%',
+                            borderRadius: 10
+                        }] 
+                    },
+                    options: { ...chartConfig, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+                });
+            }
+
+            // 2. Risk Matrix Chart
+            const riskCtx = document.getElementById('riskMatrixChart')?.getContext('2d');
+            if(riskCtx) {
+                new Chart(riskCtx, {
+                    type: 'bubble',
+                    data: { datasets: [
+                        { label: 'Calidad Mora', data: [{x: 3.5, y: 3.2, r: 15}], backgroundColor: 'rgba(239, 68, 68, 0.8)' },
+                        { label: 'Datos Contacto', data: [{x: 2.8, y: 2.9, r: 12}], backgroundColor: 'rgba(249, 115, 22, 0.8)' },
+                        { label: 'Garantías Vencidas', data: [{x: 3.0, y: 2.5, r: 10}], backgroundColor: 'rgba(234, 179, 8, 0.8)' },
+                        { label: 'Reportes Manuales', data: [{x: 2.2, y: 3.5, r: 14}], backgroundColor: 'rgba(99, 102, 241, 0.8)' }
+                    ]},
+                    options: { 
+                        ...chartConfig, 
+                        scales: { 
+                            x: { title: { display: true, text: 'Impacto Financiero' }, min: 1, max: 4, grid: {display: false} }, 
+                            y: { title: { display: true, text: 'Probabilidad' }, min: 1, max: 4, grid: {display: false} } 
+                        } 
+                    }
+                });
+            }
+
+            // 3. Correlation Radar Chart
+            const corrCtx = document.getElementById('riskCorrelationChart')?.getContext('2d');
+            if(corrCtx) {
+                new Chart(corrCtx, {
+                    type: 'radar',
+                    data: { 
+                        labels: ['Rentabilidad', 'Eficiencia', 'Riesgo Crédito', 'Cumplimiento', 'Reputación'], 
+                        datasets: [{ 
+                            label: 'Impacto de Mala Calidad', 
+                            data: [4.5, 4.2, 5.0, 4.8, 3.5], 
+                            backgroundColor: 'rgba(37, 99, 235, 0.2)', 
+                            borderColor: '#2563eb',
+                            pointBackgroundColor: '#2563eb'
+                        }] 
+                    },
+                    options: { ...chartConfig, scales: { r: { suggestedMin: 0, suggestedMax: 5, grid: { color: '#e2e8f0' } } } }
+                });
+            }
+
+            // 4. Culture Radar Chart
+            const cultCtx = document.getElementById('cultureChart')?.getContext('2d');
+            if(cultCtx) {
+                new Chart(cultCtx, {
+                    type: 'radar',
+                    data: { 
+                        labels: ['Alfabetización', 'Confianza', 'Acceso', 'Uso en Decisiones', 'Liderazgo'], 
+                        datasets: [
+                            { label: 'Actual', data: [2, 2.5, 2, 2, 2.5], borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)' }, 
+                            { label: 'Meta (18m)', data: [4, 4.5, 4.5, 5, 4.5], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)' }
+                        ] 
+                    },
+                    options: { ...chartConfig, scales: { r: { suggestedMin: 0, suggestedMax: 5 } } }
+                });
+            }
+            
+            // 5. DQ Dimensions Chart (New)
+            const dqCtx = document.getElementById('dqDimensionsChart')?.getContext('2d');
+            if(dqCtx) {
+                new Chart(dqCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Completitud', 'Precisión', 'Consistencia', 'Oportunidad', 'Unicidad', 'Validez'],
+                        datasets: [{
+                            label: 'Nivel Actual (%)',
+                            data: [75, 82, 60, 85, 70, 78],
+                            backgroundColor: [
+                                '#fca5a5', '#fcd34d', '#ef4444', '#86efac', '#93c5fd', '#fde047'
+                            ],
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        ...chartConfig,
+                        indexAxis: 'y',
+                        scales: { x: { max: 100, grid: { display: false } }, y: { grid: { display: false } } }
+                    }
+                });
+            }
+
+            // 6. Quality Trend Chart
+             const trendCtx = document.getElementById('qualityTrendChart')?.getContext('2d');
+             if(trendCtx) {
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Errores Críticos de Datos',
+                            data: [45, 42, 48, 35, 30, 28],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4
+                        }, {
+                            label: 'Datos Corregidos Automáticamente',
+                            data: [0, 5, 12, 25, 40, 55],
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.05)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: { ...chartConfig, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+                });
+             }
+
+            // --- Sankey Diagram ---
+            const sankeyContainer = document.getElementById('sankey-chart');
+            if (sankeyContainer) {
+                const width = sankeyContainer.clientWidth;
+                const height = 320;
+                const svg = d3.select("#sankey-chart").append("svg").attr("width", width).attr("height", height);
+                const sankey = d3.sankey().nodeWidth(12).nodePadding(18).extent([[1, 1], [width - 1, height - 6]]);
+                
+                const graph = {
+                    nodes: [{name: "Crédito (Originación)"}, {name: "Pagos (Caja)"}, {name: "Core Bancario"}, {name: "Data Lakehouse"}, {name: "Cálculo Mora"}, {name: "Contabilidad"}, {name: "Reporte CUIF"}, {name: "Cobranza"}],
+                    links: [
+                        {source: 0, target: 2, value: 50}, {source: 1, target: 2, value: 40},
+                        {source: 2, target: 3, value: 90},
+                        {source: 3, target: 4, value: 40}, {source: 3, target: 5, value: 30},
+                        {source: 4, target: 6, value: 20}, {source: 4, target: 7, value: 20},
+                        {source: 5, target: 6, value: 30}
+                    ]
+                };
+                
+                const {nodes, links} = sankey(graph);
+                
+                const defs = svg.append("defs");
+                const gradient = defs.append("linearGradient").attr("id", "gradient").attr("x1", "0%").attr("y1", "0%").attr("x2", "100%").attr("y2", "0%");
+                gradient.append("stop").attr("offset", "0%").attr("stop-color", "#cbd5e1").attr("stop-opacity", 0.4);
+                gradient.append("stop").attr("offset", "100%").attr("stop-color", "#94a3b8").attr("stop-opacity", 0.6);
+
+                svg.append("g").attr("fill", "none").selectAll("path").data(links).join("path")
+                    .attr("d", d3.sankeyLinkHorizontal()).attr("stroke", "url(#gradient)").attr("stroke-width", d => Math.max(1, d.width));
+                
+                svg.append("g").selectAll("rect").data(nodes).join("rect")
+                    .attr("x", d => d.x0).attr("y", d => d.y0).attr("height", d => d.y1 - d.y0).attr("width", d => d.x1 - d.x0)
+                    .attr("fill", "#2563eb").attr("rx", 3);
+                    
+                svg.append("g").style("font", "10px sans-serif").style("font-weight", "600").style("fill", "#334155")
+                    .selectAll("text").data(nodes).join("text")
+                    .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6).attr("y", d => (d.y1 + d.y0) / 2).attr("dy", "0.35em")
+                    .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end").text(d => d.name);
+            }
+
+            // --- Gantt Chart ---
+            const ganttContainer = document.getElementById('gantt-container');
+            if (ganttContainer) {
+                const tasks = [
+                    { name: "Fase 1: Gobierno & Calidad (Q3-Q4)", start: 1, end: 6, color: "bg-blue-600" },
+                    { name: "Limpieza Datos (MDM)", start: 2, end: 5, color: "bg-blue-400" },
+                    { name: "Definición Políticas", start: 1, end: 3, color: "bg-blue-400" },
+                    { name: "Fase 2: Data Lakehouse", start: 5, end: 12, color: "bg-emerald-600" },
+                    { name: "Automatización CUIF", start: 8, end: 12, color: "bg-emerald-500" },
+                    { name: "Fase 3: Analítica SARC", start: 13, end: 18, color: "bg-violet-600" },
+                    { name: "Modelos Predictivos", start: 15, end: 18, color: "bg-violet-500" }
+                ];
+                const grid = document.createElement('div');
+                grid.className = 'gantt-grid';
+                grid.innerHTML += `<div class="gantt-cell gantt-header sticky left-0 z-20 bg-slate-50 shadow-sm">Iniciativa Estratégica</div>`;
+                for(let i=1; i<=18; i++) grid.innerHTML += `<div class="gantt-cell gantt-header text-center">${i}</div>`;
+                tasks.forEach(task => {
+                    grid.innerHTML += `<div class="gantt-cell gantt-task-name border-r font-medium text-xs px-3 py-3 bg-white text-slate-700 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">${task.name}</div>`;
+                    for(let i=1; i<=18; i++) {
+                        let cellContent = '';
+                        if(i === task.start) cellContent = `<div class="gantt-bar ${task.color} shadow-sm" style="width: calc(100% * ${task.end - task.start + 1} - 8px); margin-left: 4px;"></div>`;
+                        grid.innerHTML += `<div class="gantt-cell relative p-0 bg-white">${cellContent}</div>`;
+                    }
+                });
+                ganttContainer.appendChild(grid);
+            }
+
+            // Chat Interaction
+            const chatPopup = document.getElementById('chat-popup');
+            const openBtn = document.getElementById('open-chat');
+            const closeBtn = document.getElementById('close-chat');
+            const chatInput = document.getElementById('chat-input');
+            const chatSubmit = document.getElementById('chat-submit');
+            const chatWindow = document.getElementById('chat-window');
+
+            const toggleChat = () => { chatPopup.classList.toggle('hidden'); openBtn.classList.toggle('hidden'); };
+            openBtn.onclick = toggleChat; closeBtn.onclick = toggleChat;
+
+            const addMessage = (text, type) => {
+                const div = document.createElement('div');
+                div.className = `flex ${type === 'user' ? 'justify-end' : 'justify-start'}`;
+                div.innerHTML = `<div class="${type === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'} p-3 text-xs shadow-sm max-w-[85%] leading-relaxed animate-fade-in">${text}</div>`;
+                chatWindow.appendChild(div);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            };
+
+            const handleSend = () => {
+                const val = chatInput.value.trim();
+                if(!val) return;
+                addMessage(val, 'user');
+                chatInput.value = '';
+                setTimeout(() => { addMessage("Entiendo tu consulta sobre '" + val + "'. El informe detalla este aspecto en la sección de Hallazgos Críticos.", 'ai'); }, 1000);
+            };
+            chatSubmit.onclick = handleSend;
+            chatInput.onkeypress = (e) => e.key === 'Enter' && handleSend();
+        });
+    </script>
+</body>
+</html>

@@ -122,7 +122,7 @@
         <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm z-40">
             <div class="flex items-center gap-4">
                 <button class="lg:hidden text-slate-500 hover:text-slate-700"><i class="fas fa-bars text-xl"></i></button>
-                <h1 class="text-lg font-bold text-slate-800 hidden sm:block">Diagnóstico de Gobierno de Datos Corporativo</h1>
+                <h1 class="text-lg font-bold text-slate-800 hidden sm:block">Diagnóstico de Madurez del GDC (Gobierno de Datos Corporativo)</h1>
             </div>
             <div class="flex items-center gap-4">
                 <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wide border border-emerald-200">
@@ -149,11 +149,11 @@
                             <p class="text-xs text-slate-500">Ref: Propuesta Estratégica GD-2025-001</p>
                         </div>
                     </div>
-                    <h2 class="text-3xl font-bold text-slate-800 mb-6 font-display">Diagnóstico Estratégico de Gobierno de Datos</h2>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-6 font-display">Informe de Diagnóstico Estratégico del Gobierno de Datos Corporativo - GDC</h2>
                     <div class="prose prose-slate max-w-none text-slate-600 text-base leading-relaxed text-justify space-y-4">
                         <p>Respetados miembros de la Junta Directiva y Alta Gerencia de <strong>Financiera Atlas S.A.</strong>,</p>
                         <p>En el contexto actual de transformación del sector financiero, donde la competencia se define por la agilidad digital, la inteligencia analítica y la capacidad de anticipación, los datos han dejado de ser un simple registro contable para convertirse en el activo estratégico fundamental que define la solvencia y competitividad de la institución.</p>
-                        <p>JW Project House tiene el honor de presentar este <strong>Informe de Diagnóstico Profundo y Modelo de Gobierno de Datos Corporativo</strong>. Este documento no es un reporte técnico convencional; es una hoja de ruta de negocio fundamentada en un análisis exhaustivo de ocho semanas sobre sus procesos de crédito, riesgo, operaciones y tecnología.</p>
+                        <p>JW Project House con su estrategia operativa basada en <strong>TÓTAL Consulting®</strong> como parte del <strong>Ecosistema TÓTAL REPORT®</strong>, tienen el honor de presentar este <strong>Informe de Diagnóstico Profundo del Estado de Madurez del Modelo de Gobierno de Datos Corporativo (GDC)</strong>. Este documento no es un reporte técnico convencional; es una hoja de ruta de negocio fundamentada en un análisis exhaustivo de ocho semanas sobre sus procesos de crédito, riesgo, operaciones y tecnología.</p>
                         <p>Nuestro análisis revela que Financiera Atlas enfrenta un punto de inflexión crítico. A pesar de contar con un core bancario transaccional estable, la gestión de la información opera en silos funcionales desconectados. Esta fragmentación está limitando severamente la capacidad de la organización para generar valor agregado, optimizar la gestión del riesgo de crédito (SARC) y ofrecer una experiencia personalizada a sus clientes.</p>
                         <p>Este informe detalla con precisión cómo la ausencia de un gobierno de datos formalizado está impactando directamente el P&L de la compañía, manifestándose en provisiones ineficientes, costos operativos ocultos por reprocesos manuales y una exposición latente a riesgos regulatorios y reputacionales. La arquitectura de solución propuesta busca mitigar estos riesgos y habilitar a Atlas para el futuro del Open Finance.</p>
                     </div>
@@ -1431,9 +1431,11 @@
                     .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end").text(d => d.name);
             }
 
+            
             // --- Gantt Chart ---
             const ganttContainer = document.getElementById('gantt-container');
             if (ganttContainer) {
+
                 const tasks = [
                     { name: "Fase 1: Gobierno & Calidad (Q3-Q4)", start: 1, end: 6, color: "bg-blue-600" },
                     { name: "Limpieza Datos (MDM)", start: 2, end: 5, color: "bg-blue-400" },
@@ -1443,19 +1445,70 @@
                     { name: "Fase 3: Analítica SARC", start: 13, end: 18, color: "bg-violet-600" },
                     { name: "Modelos Predictivos", start: 15, end: 18, color: "bg-violet-500" }
                 ];
-                const grid = document.createElement('div');
-                grid.className = 'gantt-grid';
-                grid.innerHTML += `<div class="gantt-cell gantt-header sticky left-0 z-20 bg-slate-50 shadow-sm">Iniciativa Estratégica</div>`;
-                for(let i=1; i<=18; i++) grid.innerHTML += `<div class="gantt-cell gantt-header text-center">${i}</div>`;
+
+                // Crear wrapper principal
+                const wrapper = document.createElement('div');
+                wrapper.className = "gantt-wrapper";
+
+                // Crear header
+                const header = document.createElement('div');
+                header.className = "gantt-header";
+
+                // Primera celda (nombre iniciativa)
+                const firstHeader = document.createElement('div');
+                firstHeader.className = "gantt-header-cell";
+                firstHeader.textContent = "Iniciativa Estratégica";
+                header.appendChild(firstHeader);
+
+                // Celdas 1–18
+                for (let i = 1; i <= 18; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = "gantt-header-cell";
+                    cell.textContent = i;
+                    header.appendChild(cell);
+                }
+
+                wrapper.appendChild(header);
+
+                // Crear filas
                 tasks.forEach(task => {
-                    grid.innerHTML += `<div class="gantt-cell gantt-task-name border-r font-medium text-xs px-3 py-3 bg-white text-slate-700 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">${task.name}</div>`;
-                    for(let i=1; i<=18; i++) {
-                        let cellContent = '';
-                        if(i === task.start) cellContent = `<div class="gantt-bar ${task.color} shadow-sm" style="width: calc(100% * ${task.end - task.start + 1} - 8px); margin-left: 4px;"></div>`;
-                        grid.innerHTML += `<div class="gantt-cell relative p-0 bg-white">${cellContent}</div>`;
+                    const row = document.createElement('div');
+                    row.className = "gantt-row";
+
+                    // Columna de nombre
+                    const nameCell = document.createElement('div');
+                    nameCell.className = "gantt-task";
+                    nameCell.textContent = task.name;
+                    row.appendChild(nameCell);
+
+                    // Timeline de 18 columnas
+                    const timeline = document.createElement('div');
+                    timeline.className = "gantt-timeline-container";
+
+                    // Líneas
+                    for (let i = 1; i <= 18; i++) {
+                        const gridLine = document.createElement('div');
+                        gridLine.className = "gantt-grid-line";
+                        timeline.appendChild(gridLine);
                     }
+
+                    // Barra
+                    const barLayer = document.createElement('div');
+                    barLayer.className = "gantt-bar-container";
+
+                    const bar = document.createElement('div');
+                    bar.className = `gantt-bar ${task.color}`;
+                    bar.style.left = ((task.start - 1) * (100 / 18)) + "%";
+                    bar.style.width = ((task.end - task.start + 1) * (100 / 18)) + "%";
+
+                    barLayer.appendChild(bar);
+                    timeline.appendChild(barLayer);
+
+                    row.appendChild(timeline);
+                    wrapper.appendChild(row);
                 });
-                ganttContainer.appendChild(grid);
+
+                ganttContainer.appendChild(wrapper);
             }
 
             // Chat Interaction

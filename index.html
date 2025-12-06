@@ -20,6 +20,9 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
 
+    <!-- Librería QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -146,7 +149,7 @@
                         </div>
                         <div class="text-right border-l pl-4 border-slate-200">
                             <p class="text-sm font-bold text-slate-800">Bogotá D.C., Mayo de 2025</p>
-                            <p class="text-xs text-slate-500">Ref: Propuesta Estratégica GD-2025-001</p>
+                            <p class="text-xs text-slate-500">Ref: Propuesta Estratégica GDC-2025-145</p>
                         </div>
                     </div>
                     <h2 class="text-3xl font-bold text-slate-800 mb-6 font-display">Informe de Diagnóstico Estratégico del Gobierno de Datos Corporativo - GDC</h2>
@@ -157,13 +160,23 @@
                         <p>Nuestro análisis revela que Financiera Atlas enfrenta un punto de inflexión crítico. A pesar de contar con un core bancario transaccional estable, la gestión de la información opera en silos funcionales desconectados. Esta fragmentación está limitando severamente la capacidad de la organización para generar valor agregado, optimizar la gestión del riesgo de crédito (SARC) y ofrecer una experiencia personalizada a sus clientes.</p>
                         <p>Este informe detalla con precisión cómo la ausencia de un gobierno de datos formalizado está impactando directamente el P&L de la compañía, manifestándose en provisiones ineficientes, costos operativos ocultos por reprocesos manuales y una exposición latente a riesgos regulatorios y reputacionales. La arquitectura de solución propuesta busca mitigar estos riesgos y habilitar a Atlas para el futuro del Open Finance.</p>
                     </div>
+                    
+                    <!-- Sección de Firma y QR -->
                     <div class="mt-10 pt-6 border-t border-slate-100 flex items-center gap-4">
                         <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-bold text-2xl shadow-inner"><i class="fas fa-signature"></i></div>
                         <div>
                             <p class="font-bold text-slate-900 text-lg">Dirección de Estrategia de Datos</p>
                             <p class="text-sm text-blue-600 font-medium">TÓTAL Consulting & JW Project House</p>
                         </div>
+                    
+                                    
+                        <!-- Código QR Derecha -->
+                        <div class="flex flex-col items-center group">
+                            <div id="auth-qr-code" class="p-2 bg-white rounded border border-slate-200 shadow-sm group-hover:shadow-md transition-shadow cursor-pointer" title="Escanear para verificar autenticidad"></div>
+                            <span class="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest">Sello de Autenticidad</span>
+                        </div>
                     </div>
+
                 </section>
 
                 <!-- 1. Resumen Ejecutivo -->
@@ -728,7 +741,7 @@
                 <section id="modelo-futuro">
                     <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
                         <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-cubes text-lg"></i></div>
-                        Arquitectura de Datos Financiera "To-Be"
+                        Arquitectura Datos Financieros "To-Be"
                     </h3>
                     <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
                         <p class="mb-8 text-slate-600 text-sm leading-relaxed max-w-4xl">
@@ -1252,6 +1265,23 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            
+            // --- GENERACIÓN DEL CÓDIGO QR ---
+            // Información para el QR
+            const qrData = "Autenticidad Verificada\nNombre: Andrey Ramirez Ospina\nCargo: C.T.O.\nEntidad: Financiera Atlas S.A.\nFecha: Mayo 2025";
+            
+            const qrContainer = document.getElementById("auth-qr-code");
+            if(qrContainer) {
+                new QRCode(qrContainer, {
+                    text: qrData,
+                    width: 80,
+                    height: 80,
+                    colorDark : "#0f172a", // Color Slate-900 para combinar
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.M
+                });
+            };
+
             // Chart Global Config
             Chart.defaults.font.family = "'Inter', sans-serif";
             Chart.defaults.color = '#64748b';
